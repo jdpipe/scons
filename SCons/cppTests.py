@@ -869,7 +869,7 @@ class TestFileCase(unittest.TestCase):
 
 
 
-if 0 and __name__ == '__main__':
+if 1 and __name__ == '__main__':
     suite = unittest.TestSuite()
     tclasses = [ TestPreProcessor,
                  TestDumbPreProcessor,
@@ -884,8 +884,6 @@ if 0 and __name__ == '__main__':
         suite.addTests(list(map(tclass, names)))
     TestUnit.run(suite)
 
-if __name__ == '__main__':
-    unittest.main()
 
 # Local Variables:
 # tab-width:4
