@@ -284,7 +284,21 @@ if not catch_output:
 
 else:
     # Else, we catch the output of both pipes...
-    if args.allow_pipe_files:
+    
+    def spawn_it(command_args, env):
+        cp = subprocess.Popen(
+            command_args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False,
+            env=env,
+            encoding='utf-8'
+        )
+        stdout,stderr = cp.communicate()
+        return stdout, stderr, cp.returncode    
+
+        # above is in response to following old notes:
+    
         # The subprocess.Popen() suffers from a well-known
         # problem. Data for stdout/stderr is read into a
         # memory buffer of fixed size, 65K which is not very much.
@@ -296,36 +310,10 @@ else:
         #   https://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
         # and pass temp file objects to Popen() instead of the ubiquitous
         # subprocess.PIPE.
+    
+        # as noted https://coderedirect.com/questions/337374/what-difference-between-subprocess-call-and-subprocess-popen-makes-pipe-less
+        # it is fine to use subprocess.PIPE with Popen.communicate()
 
-        def spawn_it(command_args, env):
-            # Create temporary files
-            tmp_stdout = tempfile.TemporaryFile(mode='w+t')
-            tmp_stderr = tempfile.TemporaryFile(mode='w+t')
-            # Start subprocess...
-            cp = subprocess.run(
-                command_args,
-                stdout=tmp_stdout,
-                stderr=tmp_stderr,
-                shell=False,
-                env=env,
-            )
-
-            try:
-                # Rewind to start of files
-                tmp_stdout.seek(0)
-                tmp_stderr.seek(0)
-                # Read output
-                spawned_stdout = tmp_stdout.read()
-                spawned_stderr = tmp_stderr.read()
-            finally:
-                # Remove temp files by closing them
-                tmp_stdout.close()
-                tmp_stderr.close()
-
-            # Return values
-            return spawned_stderr, spawned_stdout, cp.returncode
-
-    else:
         # We get here only if the user gave the '--nopipefiles'
         # option, meaning the "temp file" approach for
         # subprocess.communicate() above shouldn't be used.
@@ -338,16 +326,6 @@ else:
         #   (but the subprocess isn't writing anything there).
         #   Hence a deadlock.
         # Be dragons here! Better don't use this!
-
-        def spawn_it(command_args, env):
-            cp = subprocess.run(
-                command_args,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=False,
-                env=env,
-            )
-            return cp.stdout, cp.stderr, cp.returncode
 
 
 class RuntestBase(ABC):

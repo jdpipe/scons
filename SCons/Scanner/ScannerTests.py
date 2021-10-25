@@ -137,7 +137,7 @@ class ScannerBaseTestCase(unittest.TestCase):
 
         return self.deps
 
-    def test(self, scanner, env, filename, deps, *args):
+    def do_test(self, scanner, env, filename, deps, *args):
         self.deps = deps
         path = scanner.path(env)
         scanned = scanner(filename, env, path)
@@ -201,23 +201,23 @@ class ScannerBaseTestCase(unittest.TestCase):
         s = ScannerBase(self.func, "Pos")
         env = DummyEnvironment()
         env.VARIABLE = "var1"
-        self.test(s, env, DummyNode('f1.cpp'), ['f1.h', 'f1.hpp'])
+        self.do_test(s, env, DummyNode('f1.cpp'), ['f1.h', 'f1.hpp'])
 
         env = DummyEnvironment()
         env.VARIABLE = "i1"
-        self.test(s, env, DummyNode('i1.cpp'), ['i1.h', 'i1.hpp'])
+        self.do_test(s, env, DummyNode('i1.cpp'), ['i1.h', 'i1.hpp'])
 
     def test_keywords(self):
         """Test the ScannerBase class using keyword arguments"""
         s = ScannerBase(function = self.func, name = "Key")
         env = DummyEnvironment()
         env.VARIABLE = "var2"
-        self.test(s, env, DummyNode('f2.cpp'), ['f2.h', 'f2.hpp'])
+        self.do_test(s, env, DummyNode('f2.cpp'), ['f2.h', 'f2.hpp'])
 
         env = DummyEnvironment()
         env.VARIABLE = "i2"
 
-        self.test(s, env, DummyNode('i2.cpp'), ['i2.h', 'i2.hpp'])
+        self.do_test(s, env, DummyNode('i2.cpp'), ['i2.h', 'i2.hpp'])
 
     def test_pos_opt(self):
         """Test the ScannerBase class using both position and optional arguments"""
@@ -225,11 +225,11 @@ class ScannerBaseTestCase(unittest.TestCase):
         s = ScannerBase(self.func, "PosArg", arg)
         env = DummyEnvironment()
         env.VARIABLE = "var3"
-        self.test(s, env, DummyNode('f3.cpp'), ['f3.h', 'f3.hpp'], arg)
+        self.do_test(s, env, DummyNode('f3.cpp'), ['f3.h', 'f3.hpp'], arg)
 
         env = DummyEnvironment()
         env.VARIABLE = "i3"
-        self.test(s, env, DummyNode('i3.cpp'), ['i3.h', 'i3.hpp'], arg)
+        self.do_test(s, env, DummyNode('i3.cpp'), ['i3.h', 'i3.hpp'], arg)
 
     def test_key_opt(self):
         """Test the ScannerBase class using both keyword and optional arguments"""
@@ -237,11 +237,11 @@ class ScannerBaseTestCase(unittest.TestCase):
         s = ScannerBase(function = self.func, name = "KeyArg", argument = arg)
         env = DummyEnvironment()
         env.VARIABLE = "var4"
-        self.test(s, env, DummyNode('f4.cpp'), ['f4.h', 'f4.hpp'], arg)
+        self.do_test(s, env, DummyNode('f4.cpp'), ['f4.h', 'f4.hpp'], arg)
 
         env = DummyEnvironment()
         env.VARIABLE = "i4"
-        self.test(s, env, DummyNode('i4.cpp'), ['i4.h', 'i4.hpp'], arg)
+        self.do_test(s, env, DummyNode('i4.cpp'), ['i4.h', 'i4.hpp'], arg)
 
     def test___cmp__(self):
         """Test the ScannerBase class __cmp__() method"""

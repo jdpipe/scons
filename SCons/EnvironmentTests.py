@@ -142,13 +142,13 @@ class DummyNode:
     def get_subst_proxy(self):
         return self
 
-def test_tool( env ):
+def do_test_tool( env ):
     env['_F77INCFLAGS'] = '${_concat(INCPREFIX, F77PATH, INCSUFFIX, __env__, RDirs, TARGET, SOURCE, affect_signature=False)}'
 
 class TestEnvironmentFixture:
     def TestEnvironment(self, *args, **kw):
         if not kw or 'tools' not in kw:
-            kw['tools'] = [test_tool]
+            kw['tools'] = [do_test_tool]
         default_keys = { 'CC' : 'cc',
                          'CCFLAGS' : '-DNDEBUG',
                          'ENV' : { 'TMP' : '/tmp' } }

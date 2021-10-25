@@ -48,7 +48,7 @@ import SCons.Node.FS
 import SCons.Scanner.Python
 
 test = TestCmd.TestCmd(workdir='')
-test.dir_fixture('python_scanner')
+test.dir_fixture(os.path.join(os.path.dirname(__file__),'..','..','test','fixture','python_scanner'))
 
 if os.path.normcase('foo') == os.path.normcase('FOO'):
     my_normpath = os.path.normcase

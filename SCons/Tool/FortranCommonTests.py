@@ -91,7 +91,7 @@ class FortranScannerSubmodulesTestCase(unittest.TestCase):
         Don't generate targets for those modules listed in the interface section
         """
 
-        test.dir_fixture('fortran_unittests')
+        test.dir_fixture(os.path.join(os.path.dirname(__file__),'..','..','test','fixture','fortran_unittests'))
         env = DummyEnvironment([test.workpath('modules')])
         env['FORTRANMODDIR'] = 'modules'
         env['FORTRANMODSUFFIX'] = '.mod'

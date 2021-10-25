@@ -26,7 +26,7 @@ import unittest
 
 import TestUnit
 
-import cpp
+import SCons.cpp
 
 
 basic_input = """
@@ -533,8 +533,8 @@ class cppAllTestCase(cppTestCase):
                                   cpppath = ['/usr/include'],
                                   all=1)
 
-class PreProcessorTestCase(cppAllTestCase):
-    cpp_class = cpp.PreProcessor
+class TestPreProcessor(cppAllTestCase):
+    cpp_class = SCons.cpp.PreProcessor
 
     basic_expect = [
         ('include', '"', 'file1-yes'),
@@ -634,8 +634,8 @@ class PreProcessorTestCase(cppAllTestCase):
         ('include', '<', 'file62-yes'),
     ]
 
-class DumbPreProcessorTestCase(cppAllTestCase):
-    cpp_class = cpp.DumbPreProcessor
+class TestDumbPreProcessor(cppAllTestCase):
+    cpp_class = SCons.cpp.DumbPreProcessor
 
     basic_expect = [
         ('include', '"', 'file1-yes'),
@@ -798,8 +798,8 @@ if os.name in ('posix', 'nt'):
 else:
     tmpprefix = 'cppTests.'
 
-class fileTestCase(unittest.TestCase):
-    cpp_class = cpp.DumbPreProcessor
+class TestFileCase(unittest.TestCase):
+    cpp_class = SCons.cpp.DumbPreProcessor
 
     def setUp(self):
         path = tempfile.mkdtemp(prefix=tmpprefix)
@@ -836,7 +836,7 @@ class fileTestCase(unittest.TestCase):
         """)
         self.write('f3.h', """\
         """)
-        p = cpp.DumbPreProcessor(current = os.curdir,
+        p = SCons.cpp.DumbPreProcessor(current = os.curdir,
                                  cpppath = [os.curdir])
         result = p('f1.h')
         assert result == ['f2.h', 'f3.h'], result
@@ -851,15 +851,15 @@ class fileTestCase(unittest.TestCase):
         """)
         self.write('f3.h', """\
         """)
-        class MyPreProcessor(cpp.DumbPreProcessor):
+        class MyPreProcessor(SCons.cpp.DumbPreProcessor):
             def __init__(self, *args, **kw):
-                cpp.DumbPreProcessor.__init__(self, *args, **kw)
+                SCons.cpp.DumbPreProcessor.__init__(self, *args, **kw)
                 self.files = []
             def __call__(self, file):
                 self.files.append(file)
-                return cpp.DumbPreProcessor.__call__(self, file)
+                return SCons.cpp.DumbPreProcessor.__call__(self, file)
             def scons_current_file(self, t):
-                r = cpp.DumbPreProcessor.scons_current_file(self, t)
+                r = SCons.cpp.DumbPreProcessor.scons_current_file(self, t)
                 self.files.append(self.current_file)
                 return r
         p = MyPreProcessor(current = os.curdir, cpppath = [os.curdir])
@@ -869,11 +869,11 @@ class fileTestCase(unittest.TestCase):
 
 
 
-if __name__ == '__main__':
+if 0 and __name__ == '__main__':
     suite = unittest.TestSuite()
-    tclasses = [ PreProcessorTestCase,
-                 DumbPreProcessorTestCase,
-                 fileTestCase,
+    tclasses = [ TestPreProcessor,
+                 TestDumbPreProcessor,
+                 TestFileCase,
                ]
     for tclass in tclasses:
         names = unittest.getTestCaseNames(tclass, 'test_')
@@ -883,6 +883,9 @@ if __name__ == '__main__':
             pass
         suite.addTests(list(map(tclass, names)))
     TestUnit.run(suite)
+
+if __name__ == '__main__':
+    unittest.main()
 
 # Local Variables:
 # tab-width:4

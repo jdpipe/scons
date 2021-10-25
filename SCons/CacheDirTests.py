@@ -28,7 +28,8 @@ import unittest
 import tempfile
 import stat
 
-from TestCmd import TestCmd
+# changed to avoid pytest from collecting TestCmd as a test class.
+import TestCmd
 
 import SCons.CacheDir
 
@@ -66,7 +67,7 @@ class BaseTestCase(unittest.TestCase):
     Base fixtures common to our other unittest classes.
     """
     def setUp(self):
-        self.test = TestCmd(workdir='')
+        self.test = TestCmd.TestCmd(workdir='')
 
         import SCons.Node.FS
         self.fs = SCons.Node.FS.FS()
@@ -302,7 +303,7 @@ class FileTestCase(BaseTestCase):
     def test_warning(self):
         """Test raising a warning if we can't copy a file to cache."""
 
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
 
         save_copy2 = shutil.copy2
         def copy2(src, dst):

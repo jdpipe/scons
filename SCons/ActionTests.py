@@ -212,7 +212,7 @@ _python_ = test.escape(python)
 _null = SCons.Action._null
 
 
-def test_varlist(pos_call, str_call, cmd, cmdstrfunc, **kw):
+def do_test_varlist(pos_call, str_call, cmd, cmdstrfunc, **kw):
     def call_action(a, pos_call=pos_call, str_call=str_call, kw=kw):
         a = SCons.Action.Action(*a, **kw)
         # returned object must provide these entry points
@@ -250,7 +250,7 @@ def test_varlist(pos_call, str_call, cmd, cmdstrfunc, **kw):
     assert a.varlist == ('a', 'b', 'c', 'x', 'y', 'z'), a.varlist
 
 
-def test_positional_args(pos_callback, cmd, **kw):
+def do_test_positional_args(pos_callback, cmd, **kw):
     """Test that Action() returns the expected type and that positional args work.
     """
     act = SCons.Action.Action(cmd, **kw)
@@ -262,7 +262,7 @@ def test_positional_args(pos_callback, cmd, **kw):
         def none(a):
             pass
 
-        test_varlist(pos_callback, none, cmd, None, **kw)
+        do_test_varlist(pos_callback, none, cmd, None, **kw)
     else:
         # _ActionAction should have set these
         assert hasattr(act, 'strfunction')
@@ -276,7 +276,7 @@ def test_positional_args(pos_callback, cmd, **kw):
             assert hasattr(a, 'strfunction')
             assert a.cmdstr == 'cmdstr', a.cmdstr
 
-        test_varlist(pos_callback, cmdstr, cmd, 'cmdstr', **kw)
+        do_test_varlist(pos_callback, cmdstr, cmd, 'cmdstr', **kw)
 
         def fun():
             pass
@@ -285,13 +285,13 @@ def test_positional_args(pos_callback, cmd, **kw):
             assert a.strfunction is fun, a.strfunction
             assert a.cmdstr == _null, a.cmdstr
 
-        test_varlist(pos_callback, strfun, cmd, fun, **kw)
+        do_test_varlist(pos_callback, strfun, cmd, fun, **kw)
 
         def none(a):
             assert hasattr(a, 'strfunction')
             assert a.cmdstr is None, a.cmdstr
 
-        test_varlist(pos_callback, none, cmd, None, **kw)
+        do_test_varlist(pos_callback, none, cmd, None, **kw)
 
         """Test handling of bad cmdstrfunc arguments """
         try:
@@ -320,9 +320,9 @@ class ActionTestCase(unittest.TestCase):
             assert isinstance(a, SCons.Action.FunctionAction), a
             assert a.execfunction == foo, a.execfunction
 
-        test_positional_args(func_action, foo)
+        do_test_positional_args(func_action, foo)
         # a singleton list returns the contained action
-        test_positional_args(func_action, [foo])
+        do_test_positional_args(func_action, [foo])
 
     def test_CommandAction(self):
         """Test the Action() factory's creation of CommandAction objects
@@ -332,15 +332,15 @@ class ActionTestCase(unittest.TestCase):
             assert isinstance(a, SCons.Action.CommandAction), a
             assert a.cmd_list == "string", a.cmd_list
 
-        test_positional_args(cmd_action, "string")
+        do_test_positional_args(cmd_action, "string")
         # a singleton list returns the contained action
-        test_positional_args(cmd_action, ["string"])
+        do_test_positional_args(cmd_action, ["string"])
 
         def line_action(a):
             assert isinstance(a, SCons.Action.CommandAction), a
             assert a.cmd_list == ["explicit", "command", "line"], a.cmd_list
 
-        test_positional_args(line_action, [["explicit", "command", "line"]])
+        do_test_positional_args(line_action, [["explicit", "command", "line"]])
 
     def test_ListAction(self):
         """Test the Action() factory's creation of ListAction objects
@@ -410,7 +410,7 @@ class ActionTestCase(unittest.TestCase):
             assert isinstance(a, SCons.Action.CommandGeneratorAction), a
             assert a.generator is foo, a.generator
 
-        test_positional_args(gen_action, foo, generator=1)
+        do_test_positional_args(gen_action, foo, generator=1)
 
     def test_LazyCmdGeneratorAction(self):
         """Test the Action() factory's creation of lazy CommandGeneratorAction objects
@@ -421,8 +421,8 @@ class ActionTestCase(unittest.TestCase):
             assert a.var == "FOO", a.var
             assert a.cmd_list == "${FOO}", a.cmd_list
 
-        test_positional_args(lazy_action, "$FOO")
-        test_positional_args(lazy_action, "${FOO}")
+        do_test_positional_args(lazy_action, "$FOO")
+        do_test_positional_args(lazy_action, "${FOO}")
 
     def test_no_action(self):
         """Test when the Action() factory can't create an action object
@@ -2224,7 +2224,7 @@ class ActionCompareTestCase(unittest.TestCase):
         assert dog.get_name(env) == 'DOG', dog.get_name(env)
 
 
-class TestClass:
+class MyTestClass:
     """A test class used by ObjectContentsTestCase.test_object_contents"""
 
     def __init__(self):
@@ -2262,7 +2262,7 @@ class ObjectContentsTestCase(unittest.TestCase):
         """Test that Action._object_contents works"""
 
         # See definition above
-        o = TestClass()
+        o = MyTestClass()
         c = SCons.Action._object_contents(o)
 
         # c = SCons.Action._object_instance_content(o)
@@ -2270,17 +2270,17 @@ class ObjectContentsTestCase(unittest.TestCase):
         # Since the python bytecode has per version differences, we need different expected results per version
         expected = {
             (3, 5): bytearray(
-                b"{TestClass:__main__}[[[(<class \'object\'>, ()), [(<class \'__main__.TestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01\x00|\x00\x00_\x00\x00d\x02\x00|\x00\x00_\x01\x00d\x00\x00S),(),(),2, 2, 0, 0,(),(),(d\x00\x00S),(),()}}{{{a=a,b=b}}}"),
+                b"{MyTestClass:SCons.ActionTests}[[[(<class \'object\'>, ()), [(<class \'SCons.ActionTests.MyTestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01\x00|\x00\x00_\x00\x00d\x02\x00|\x00\x00_\x01\x00d\x00\x00S),(),(),2, 2, 0, 0,(),(),(d\x00\x00S),(),()}}{{{a=a,b=b}}}"),
             (3, 6): bytearray(
-                b"{TestClass:__main__}[[[(<class \'object\'>, ()), [(<class \'__main__.TestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
+                b"{MyTestClass:SCons.ActionTests}[[[(<class \'object\'>, ()), [(<class \'SCons.ActionTests.MyTestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
             (3, 7): bytearray(
-                b"{TestClass:__main__}[[[(<class \'object\'>, ()), [(<class \'__main__.TestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
+                b"{MyTestClass:SCons.ActionTests}[[[(<class \'object\'>, ()), [(<class \'SCons.ActionTests.MyTestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
             (3, 8): bytearray(
-                b"{TestClass:__main__}[[[(<class \'object\'>, ()), [(<class \'__main__.TestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
+                b"{MyTestClass:SCons.ActionTests}[[[(<class \'object\'>, ()), [(<class \'SCons.ActionTests.MyTestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
             (3, 9): bytearray(
-                b"{TestClass:__main__}[[[(<class \'object\'>, ()), [(<class \'__main__.TestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
+                b"{MyTestClass:SCons.ActionTests}[[[(<class \'object\'>, ()), [(<class \'SCons.ActionTests.MyTestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
             (3, 10): bytearray(
-                b"{TestClass:__main__}[[[(<class \'object\'>, ()), [(<class \'__main__.TestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
+                b"{MyTestClass:SCons.ActionTests}[[[(<class \'object\'>, ()), [(<class \'SCons.ActionTests.MyTestClass\'>, (<class \'object\'>,))]]]]{{1, 1, 0, 0,(a,b),(a,b),(d\x01|\x00_\x00d\x02|\x00_\x01d\x00S\x00),(),(),2, 2, 0, 0,(),(),(d\x00S\x00),(),()}}{{{a=a,b=b}}}"),
         }
 
         assert c == expected[sys.version_info[:2]], "Got\n" + repr(c) + "\nExpected \n" + "\n" + repr(

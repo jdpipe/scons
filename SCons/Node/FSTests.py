@@ -30,7 +30,7 @@ import unittest
 import shutil
 import stat
 
-from TestCmd import TestCmd, IS_WINDOWS
+import TestCmd
 
 import SCons.Errors
 import SCons.Node.FS
@@ -128,7 +128,7 @@ class Builder:
 class _tempdirTestCase(unittest.TestCase):
     def setUp(self):
         self.save_cwd = os.getcwd()
-        self.test = TestCmd(workdir='')
+        self.test = TestCmd.TestCmd(workdir='')
         # FS doesn't like the cwd to be something other than its root.
         os.chdir(self.test.workpath(""))
         self.fs = SCons.Node.FS.FS()
@@ -140,7 +140,7 @@ class _tempdirTestCase(unittest.TestCase):
 class VariantDirTestCase(unittest.TestCase):
     def runTest(self):
         """Test variant dir functionality"""
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
 
         fs = SCons.Node.FS.FS()
         f1 = fs.File('build/test1')
@@ -2428,7 +2428,7 @@ class EntryTestCase(_tempdirTestCase):
     def test_runTest(self):
         """Test methods specific to the Entry sub-class.
         """
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
         # FS doesn't like the cwd to be something other than its root.
         os.chdir(test.workpath(""))
 
@@ -3397,7 +3397,7 @@ class RepositoryTestCase(_tempdirTestCase):
 class find_fileTestCase(unittest.TestCase):
     def runTest(self):
         """Testing find_file function"""
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
         test.write('./foo', 'Some file\n')
         test.write('./foo2', 'Another file\n')
         test.subdir('same')
@@ -3472,7 +3472,7 @@ class StringDirTestCase(unittest.TestCase):
         """Test using a string as the second argument of
         File() and Dir()"""
 
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
         test.subdir('sub')
         fs = SCons.Node.FS.FS(test.workpath(''))
 
@@ -3487,7 +3487,7 @@ class StringDirTestCase(unittest.TestCase):
 class stored_infoTestCase(unittest.TestCase):
     def runTest(self):
         """Test how we store build information"""
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
         test.subdir('sub')
         fs = SCons.Node.FS.FS(test.workpath(''))
 
@@ -3517,7 +3517,7 @@ class stored_infoTestCase(unittest.TestCase):
 class has_src_builderTestCase(unittest.TestCase):
     def runTest(self):
         """Test the has_src_builder() method"""
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
         fs = SCons.Node.FS.FS(test.workpath(''))
         os.chdir(test.workpath(''))
         test.subdir('sub1')
@@ -3599,7 +3599,7 @@ class prepareTestCase(unittest.TestCase):
         dir = fs.Dir("dir")
         dir.prepare()
 
-@unittest.skipIf(IS_WINDOWS, "No symlinks on windows")
+@unittest.skipIf(TestCmd.IS_WINDOWS, "No symlinks on windows")
 @unittest.skipUnless(hasattr(os, 'symlink'), "Platform doesn't support symlink")
 class CleanSymlinksTestCase(_tempdirTestCase):
 
@@ -3683,7 +3683,7 @@ class clearTestCase(unittest.TestCase):
     def runTest(self):
         """Test clearing FS nodes of cached data."""
         fs = SCons.Node.FS.FS()
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
 
         e = fs.Entry('e')
         assert not e.exists()
@@ -3737,7 +3737,7 @@ class clearTestCase(unittest.TestCase):
 class disambiguateTestCase(unittest.TestCase):
     def runTest(self):
         """Test calling the disambiguate() method."""
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
 
         fs = SCons.Node.FS.FS()
 
@@ -3814,7 +3814,7 @@ class postprocessTestCase(unittest.TestCase):
 class SpecialAttrTestCase(unittest.TestCase):
     def runTest(self):
         """Test special attributes of file nodes."""
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
         fs = SCons.Node.FS.FS(test.workpath('work'))
 
         f = fs.Entry('foo/bar/baz.blat').get_subst_proxy()
@@ -3972,7 +3972,7 @@ class SpecialAttrTestCase(unittest.TestCase):
 class SaveStringsTestCase(unittest.TestCase):
     def runTest(self):
         """Test caching string values of nodes."""
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
 
         def setup(fs):
             fs.Dir('src')
@@ -4032,7 +4032,7 @@ class SaveStringsTestCase(unittest.TestCase):
 class AbsolutePathTestCase(unittest.TestCase):
     def test_root_lookup_equivalence(self):
         """Test looking up /fff vs. fff in the / directory"""
-        test = TestCmd(workdir='')
+        test = TestCmd.TestCmd(workdir='')
 
         fs = SCons.Node.FS.FS('/')
 
