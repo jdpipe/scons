@@ -29,7 +29,8 @@ jobs:
           python-version: 3.8
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel colorama
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install colorama pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 #      - name: Run SCons unit tests
 #        run: |
