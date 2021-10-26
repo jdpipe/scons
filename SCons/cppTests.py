@@ -22,6 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import atexit
+import pytest
 import unittest
 
 import TestUnit
@@ -438,346 +439,236 @@ if_no_space_input = """
 #    pp(input)
 
 
-class cppTestCase(unittest.TestCase):
-    def setUp(self):
-        self.cpp = self.cpp_class(current = ".",
-                                  cpppath = ['/usr/include'])
+@pytest.fixture
+def dumbpre():
+    return SCons.cpp.DumbPreProcessor(current = ".", cpppath = ['/usr/include'], all=1)
 
-    def test_basic(self):
-        """Test basic #include scanning"""
-        expect = self.basic_expect
-        result = self.cpp.process_contents(basic_input)
-        assert expect == result, (expect, result)
+@pytest.fixture
+def pre():
+    return SCons.cpp.PreProcessor(current = ".", cpppath = ['/usr/include'],all=1)
 
-    def test_substitution(self):
-        """Test substitution of #include files using CPP variables"""
-        expect = self.substitution_expect
-        result = self.cpp.process_contents(substitution_input)
-        assert expect == result, (expect, result)
+@pytest.fixture
+def preproccases():
+    return {
+        'basic':(
+            # 0= cpp input
+                basic_input
+            ,# 1= pre expected output
+            [
+                ('include', '"', 'file1-yes'),
+                ('include', '<', 'file2-yes'),
+            ],
+            # 2=dumbpre expected output
+            [
+                ('include', '"', 'file1-yes'),
+                ('include', '<', 'file2-yes'),
+            ])
+        ,'substitution':(substitution_input,[
+                ('include', '"', 'file3-yes'),
+                ('include', '<', 'file4-yes'),
+                ('include', '"', 'file5-yes'),
+                ('include', '<', 'file6-yes'),
+            ],[
+                ('include', '"', 'file3-yes'),
+                ('include', '<', 'file4-yes'),
+                ('include', '"', 'file5-yes'),
+                ('include', '<', 'file6-yes'),
+            ])
+        ,'ifdef':(ifdef_input,[
+                ('include', '"', 'file7-yes'),
+                ('include', '<', 'file8-yes'),
+            ],[
+                ('include', '"', 'file7-yes'),
+                ('include', '"', 'file7-no'),
+                ('include', '<', 'file8-no'),
+                ('include', '<', 'file8-yes'),
+            ])
+        ,'if_boolean':(if_boolean_input,[
+                ('include', '"', 'file9-yes'),
+                ('include', '<', 'file10-yes'),
+                ('include', '"', 'file11-yes'),
+                ('include', '<', 'file12-yes'),
+                ('include', '"', 'file13-yes'),
+                ('include', '<', 'file14-yes'),
+            ],[
+                ('include', '"', 'file9-no'),
+                ('include', '"', 'file9-yes'),
+                ('include', '<', 'file10-yes'),
+                ('include', '<', 'file10-no'),
+                ('include', '"', 'file11-no-1'),
+                ('include', '"', 'file11-no-2'),
+                ('include', '"', 'file11-yes'),
+                ('include', '<', 'file12-no-1'),
+                ('include', '<', 'file12-yes'),
+                ('include', '<', 'file12-no-2'),
+                ('include', '"', 'file13-yes'),
+                ('include', '"', 'file13-no-1'),
+                ('include', '"', 'file13-no-2'),
+                ('include', '<', 'file14-yes'),
+                ('include', '<', 'file14-no-1'),
+                ('include', '<', 'file14-no-2'),
+            ])
+        ,'if_defined':(if_defined_input,[
+                ('include', '"', 'file15-yes'),
+                ('include', '<', 'file16-yes'),
+                ('include', '"', 'file17-yes'),
+                ('include', '<', 'file18-yes'),
+                ('include', '<', 'file19-yes'),
+            ],[
+                ('include', '"', 'file15-yes'),
+                ('include', '<', 'file16-no'),
+                ('include', '<', 'file16-yes'),
+                ('include', '"', 'file17-yes'),
+                ('include', '<', 'file18-no'),
+                ('include', '<', 'file18-yes'),
+                ('include', '<', 'file19-no'),
+                ('include', '<', 'file19-yes'),
+            ])
+        ,'expression':(expression_input,[
+                ('include', '"', 'file19-yes'),
+                ('include', '<', 'file20-yes'),
+                ('include', '"', 'file21-yes'),
+                ('include', '<', 'file22-yes'),
+                ('include', '"', 'file23-yes'),
+                ('include', '<', 'file24-yes'),
+                ('include', '"', 'file25-yes'),
+                ('include', '<', 'file26-yes'),
+                ('include', '"', 'file27-yes'),
+                ('include', '<', 'file28-yes'),
+                ('include', '"', 'file29-yes'),
+                ('include', '<', 'file30-yes'),
+                ('include', '<', 'file301-yes'),
+            ],[
+                ('include', '"', 'file19-no'),
+                ('include', '"', 'file19-yes'),
+                ('include', '<', 'file20-no'),
+                ('include', '<', 'file20-yes'),
+                ('include', '"', 'file21-no'),
+                ('include', '"', 'file21-yes'),
+                ('include', '<', 'file22-yes'),
+                ('include', '<', 'file22-no'),
+                ('include', '"', 'file23-no'),
+                ('include', '"', 'file23-yes'),
+                ('include', '<', 'file24-yes'),
+                ('include', '<', 'file24-no'),
+                ('include', '"', 'file25-yes'),
+                ('include', '"', 'file25-no'),
+                ('include', '<', 'file26-yes'),
+                ('include', '<', 'file26-no'),
+                ('include', '"', 'file27-yes'),
+                ('include', '"', 'file27-no'),
+                ('include', '<', 'file28-no'),
+                ('include', '<', 'file28-yes'),
+                ('include', '"', 'file29-no'),
+                ('include', '"', 'file29-yes'),
+                ('include', '<', 'file30-yes'),
+                ('include', '<', 'file30-no'),
+                ('include', '<', 'file301-yes'),
+                ('include', '<', 'file301-no'),
+            ])
+        ,'undef':(undef_input,[
+                ('include', '"', 'file31-yes'),
+                ('include', '<', 'file32-yes'),
+            ],[
+                ('include', '"', 'file31-yes'),
+                ('include', '"', 'file31-no'),
+                ('include', '<', 'file32-no'),
+                ('include', '<', 'file32-yes'),
+            ])
+        ,'macro_function':(macro_function_input,[
+                ('include', '"', 'file33-yes'),
+                ('include', '<', 'file34-yes'),
+                ('include', '"', 'file35-yes'),
+                ('include', '<', 'file36-yes'),
+                ('include', '"', 'file37-yes'),
+                ('include', '<', 'file38-yes'),
+                ('include', '"', 'file39-yes'),
+                ('include', '<', 'file40-yes'),
+            ],[
+                ('include', '"', 'file33-yes'),
+                ('include', '<', 'file34-yes'),
+                ('include', '"', 'file35-yes'),
+                ('include', '<', 'file36-yes'),
+                ('include', '"', 'file37-yes'),
+                ('include', '<', 'file38-yes'),
+                ('include', '"', 'file39-yes'),
+                ('include', '<', 'file40-yes'),
+            ])
+        ,'token_pasting':(token_pasting_input,[
+                ('include', '"', 'file41-yes'),
+                ('include', '<', 'file42-yes'),
+            ],[
+                ('include', '"', 'file41-yes'),
+                ('include', '<', 'file42-yes'),
+            ])
+        ,'no_space':(no_space_input,[
+                ('include', '<', 'file43-yes'),
+                ('include', '"', 'file44-yes'),
+            ],[
+                ('include', '<', 'file43-yes'),
+                ('include', '"', 'file44-yes'),
+            ])
+        ,'nested_ifs':(nested_ifs_input,[
+                ('include', '"', 'file7-yes'),
+            ],[
+                ('include', '"', 'file7-no'),
+                ('include', '"', 'file8-no'),
+                ('include', '"', 'file9-no'),
+                ('include', '"', 'file7-yes')
+            ])
+        ,'ifndef':(ifndef_input,[
+                ('include', '"', 'file45-yes'),
+                ('include', '<', 'file46-yes'),
+            ],[
+                ('include', '"', 'file45-no'),
+                ('include', '"', 'file45-yes'),
+                ('include', '<', 'file46-yes'),
+                ('include', '<', 'file46-no'),
+            ])
+        ,'if_defined_no_space':(if_defined_no_space_input,[
+                ('include', '"', 'file47-yes'),
+                ('include', '<', 'file50-yes'),
+                ('include', '"', 'file53-yes'),
+            ],[
+                ('include', '"', 'file47-yes'),
+                ('include', '<', 'file48-no'),
+                ('include', '<', 'file49-no'),
+                ('include', '<', 'file50-yes'),
+                ('include', '"', 'file51-no'),
+                ('include', '<', 'file52-no'),
+                ('include', '"', 'file53-yes'),
+            ])
+        ,'if_no_space':(if_no_space_input,[
+                ('include', '<', 'file55-yes'),
+                ('include', '<', 'file58-yes'),
+                ('include', '"', 'file59-yes'),
+                ('include', '<', 'file62-yes'),
+            ],[
+                ('include', '"', 'file54-no'),
+                ('include', '<', 'file55-yes'),
+                ('include', '<', 'file56-no'),
+                ('include', '"', 'file57-no'),
+                ('include', '<', 'file58-yes'),
+                ('include', '"', 'file59-yes'),
+                ('include', '<', 'file60-no'),
+                ('include', '"', 'file61-no'),
+                ('include', '<', 'file62-yes'),
+            ])
+        }
 
-    def test_ifdef(self):
-        """Test basic #ifdef processing"""
-        expect = self.ifdef_expect
-        result = self.cpp.process_contents(ifdef_input)
-        assert expect == result, (expect, result)
+def test_pre(preproccases,pre):
+    for c in preproccases:
+        print("testing with pre:",c)
+        expect = preproccases[c][1]
+        result = pre.process_contents(preproccases[c][0])
+        assert result == expect, (c,result,expect)
 
-    def test_if_boolean(self):
-        """Test #if with Boolean values"""
-        expect = self.if_boolean_expect
-        result = self.cpp.process_contents(if_boolean_input)
-        assert expect == result, (expect, result)
-
-    def test_if_defined(self):
-        """Test #if defined() idioms"""
-        expect = self.if_defined_expect
-        result = self.cpp.process_contents(if_defined_input)
-        assert expect == result, (expect, result)
-
-    def test_expression(self):
-        """Test #if with arithmetic expressions"""
-        expect = self.expression_expect
-        result = self.cpp.process_contents(expression_input)
-        assert expect == result, (expect, result)
-
-    def test_undef(self):
-        """Test #undef handling"""
-        expect = self.undef_expect
-        result = self.cpp.process_contents(undef_input)
-        assert expect == result, (expect, result)
-
-    def test_macro_function(self):
-        """Test using macro functions to express file names"""
-        expect = self.macro_function_expect
-        result = self.cpp.process_contents(macro_function_input)
-        assert expect == result, (expect, result)
-
-    def test_token_pasting(self):
-        """Test token-pasting to construct file names"""
-        expect = self.token_pasting_expect
-        result = self.cpp.process_contents(token_pasting_input)
-        assert expect == result, (expect, result)
-
-    def test_no_space(self):
-        """Test no space between #include and the quote"""
-        expect = self.no_space_expect
-        result = self.cpp.process_contents(no_space_input)
-        assert expect == result, (expect, result)
-
-    def test_nested_ifs(self):
-        expect = self.nested_ifs_expect
-        result = self.cpp.process_contents(nested_ifs_input)
-        assert expect == result, (expect, result)
-
-    def test_ifndef(self):
-        """Test basic #ifndef processing"""
-        expect = self.ifndef_expect
-        result = self.cpp.process_contents(ifndef_input)
-        assert expect == result, (expect, result)
-
-    def test_if_defined_no_space(self):
-        """Test #if(defined, i.e.without space but parenthesis"""
-        expect = self.if_defined_no_space_expect
-        result = self.cpp.process_contents(if_defined_no_space_input)
-        assert expect == result, (expect, result)
-
-    def test_if_no_space(self):
-        """Test #if(, i.e. without space but parenthesis"""
-        expect = self.if_no_space_expect
-        result = self.cpp.process_contents(if_no_space_input)
-        assert expect == result, (expect, result)
-
-
-class cppAllTestCase(cppTestCase):
-    def setUp(self):
-        self.cpp = self.cpp_class(current = ".",
-                                  cpppath = ['/usr/include'],
-                                  all=1)
-
-class TestPreProcessor(cppAllTestCase):
-    cpp_class = SCons.cpp.PreProcessor
-
-    basic_expect = [
-        ('include', '"', 'file1-yes'),
-        ('include', '<', 'file2-yes'),
-    ]
-
-    substitution_expect = [
-        ('include', '"', 'file3-yes'),
-        ('include', '<', 'file4-yes'),
-        ('include', '"', 'file5-yes'),
-        ('include', '<', 'file6-yes'),
-    ]
-
-    ifdef_expect = [
-        ('include', '"', 'file7-yes'),
-        ('include', '<', 'file8-yes'),
-    ]
-
-    if_boolean_expect = [
-        ('include', '"', 'file9-yes'),
-        ('include', '<', 'file10-yes'),
-        ('include', '"', 'file11-yes'),
-        ('include', '<', 'file12-yes'),
-        ('include', '"', 'file13-yes'),
-        ('include', '<', 'file14-yes'),
-    ]
-
-    if_defined_expect = [
-        ('include', '"', 'file15-yes'),
-        ('include', '<', 'file16-yes'),
-        ('include', '"', 'file17-yes'),
-        ('include', '<', 'file18-yes'),
-        ('include', '<', 'file19-yes'),
-    ]
-
-    expression_expect = [
-        ('include', '"', 'file19-yes'),
-        ('include', '<', 'file20-yes'),
-        ('include', '"', 'file21-yes'),
-        ('include', '<', 'file22-yes'),
-        ('include', '"', 'file23-yes'),
-        ('include', '<', 'file24-yes'),
-        ('include', '"', 'file25-yes'),
-        ('include', '<', 'file26-yes'),
-        ('include', '"', 'file27-yes'),
-        ('include', '<', 'file28-yes'),
-        ('include', '"', 'file29-yes'),
-        ('include', '<', 'file30-yes'),
-        ('include', '<', 'file301-yes'),
-    ]
-
-    undef_expect = [
-        ('include', '"', 'file31-yes'),
-        ('include', '<', 'file32-yes'),
-    ]
-
-    macro_function_expect = [
-        ('include', '"', 'file33-yes'),
-        ('include', '<', 'file34-yes'),
-        ('include', '"', 'file35-yes'),
-        ('include', '<', 'file36-yes'),
-        ('include', '"', 'file37-yes'),
-        ('include', '<', 'file38-yes'),
-        ('include', '"', 'file39-yes'),
-        ('include', '<', 'file40-yes'),
-    ]
-
-    token_pasting_expect = [
-        ('include', '"', 'file41-yes'),
-        ('include', '<', 'file42-yes'),
-    ]
-
-    no_space_expect = [
-        ('include', '<', 'file43-yes'),
-        ('include', '"', 'file44-yes'),
-    ]
-
-    nested_ifs_expect = [
-        ('include', '"', 'file7-yes'),
-    ]
-
-    ifndef_expect = [
-        ('include', '"', 'file45-yes'),
-        ('include', '<', 'file46-yes'),
-    ]
-
-    if_defined_no_space_expect = [
-        ('include', '"', 'file47-yes'),
-        ('include', '<', 'file50-yes'),
-        ('include', '"', 'file53-yes'),
-    ]
-
-    if_no_space_expect = [
-        ('include', '<', 'file55-yes'),
-        ('include', '<', 'file58-yes'),
-        ('include', '"', 'file59-yes'),
-        ('include', '<', 'file62-yes'),
-    ]
-
-class TestDumbPreProcessor(cppAllTestCase):
-    cpp_class = SCons.cpp.DumbPreProcessor
-
-    basic_expect = [
-        ('include', '"', 'file1-yes'),
-        ('include', '<', 'file2-yes'),
-    ]
-
-    substitution_expect = [
-        ('include', '"', 'file3-yes'),
-        ('include', '<', 'file4-yes'),
-        ('include', '"', 'file5-yes'),
-        ('include', '<', 'file6-yes'),
-    ]
-
-    ifdef_expect = [
-        ('include', '"', 'file7-yes'),
-        ('include', '"', 'file7-no'),
-        ('include', '<', 'file8-no'),
-        ('include', '<', 'file8-yes'),
-    ]
-
-    if_boolean_expect = [
-        ('include', '"', 'file9-no'),
-        ('include', '"', 'file9-yes'),
-        ('include', '<', 'file10-yes'),
-        ('include', '<', 'file10-no'),
-        ('include', '"', 'file11-no-1'),
-        ('include', '"', 'file11-no-2'),
-        ('include', '"', 'file11-yes'),
-        ('include', '<', 'file12-no-1'),
-        ('include', '<', 'file12-yes'),
-        ('include', '<', 'file12-no-2'),
-        ('include', '"', 'file13-yes'),
-        ('include', '"', 'file13-no-1'),
-        ('include', '"', 'file13-no-2'),
-        ('include', '<', 'file14-yes'),
-        ('include', '<', 'file14-no-1'),
-        ('include', '<', 'file14-no-2'),
-    ]
-
-    if_defined_expect = [
-        ('include', '"', 'file15-yes'),
-        ('include', '<', 'file16-no'),
-        ('include', '<', 'file16-yes'),
-        ('include', '"', 'file17-yes'),
-        ('include', '<', 'file18-no'),
-        ('include', '<', 'file18-yes'),
-        ('include', '<', 'file19-no'),
-        ('include', '<', 'file19-yes'),
-    ]
-
-    expression_expect = [
-        ('include', '"', 'file19-no'),
-        ('include', '"', 'file19-yes'),
-        ('include', '<', 'file20-no'),
-        ('include', '<', 'file20-yes'),
-        ('include', '"', 'file21-no'),
-        ('include', '"', 'file21-yes'),
-        ('include', '<', 'file22-yes'),
-        ('include', '<', 'file22-no'),
-        ('include', '"', 'file23-no'),
-        ('include', '"', 'file23-yes'),
-        ('include', '<', 'file24-yes'),
-        ('include', '<', 'file24-no'),
-        ('include', '"', 'file25-yes'),
-        ('include', '"', 'file25-no'),
-        ('include', '<', 'file26-yes'),
-        ('include', '<', 'file26-no'),
-        ('include', '"', 'file27-yes'),
-        ('include', '"', 'file27-no'),
-        ('include', '<', 'file28-no'),
-        ('include', '<', 'file28-yes'),
-        ('include', '"', 'file29-no'),
-        ('include', '"', 'file29-yes'),
-        ('include', '<', 'file30-yes'),
-        ('include', '<', 'file30-no'),
-        ('include', '<', 'file301-yes'),
-        ('include', '<', 'file301-no'),
-    ]
-
-    undef_expect = [
-        ('include', '"', 'file31-yes'),
-        ('include', '"', 'file31-no'),
-        ('include', '<', 'file32-no'),
-        ('include', '<', 'file32-yes'),
-    ]
-
-    macro_function_expect = [
-        ('include', '"', 'file33-yes'),
-        ('include', '<', 'file34-yes'),
-        ('include', '"', 'file35-yes'),
-        ('include', '<', 'file36-yes'),
-        ('include', '"', 'file37-yes'),
-        ('include', '<', 'file38-yes'),
-        ('include', '"', 'file39-yes'),
-        ('include', '<', 'file40-yes'),
-    ]
-
-    token_pasting_expect = [
-        ('include', '"', 'file41-yes'),
-        ('include', '<', 'file42-yes'),
-    ]
-
-    no_space_expect = [
-        ('include', '<', 'file43-yes'),
-        ('include', '"', 'file44-yes'),
-    ]
-
-    nested_ifs_expect = [
-        ('include', '"', 'file7-no'),
-        ('include', '"', 'file8-no'),
-        ('include', '"', 'file9-no'),
-        ('include', '"', 'file7-yes')
-    ]
-
-    ifndef_expect = [
-        ('include', '"', 'file45-no'),
-        ('include', '"', 'file45-yes'),
-        ('include', '<', 'file46-yes'),
-        ('include', '<', 'file46-no'),
-    ]
-
-    if_defined_no_space_expect = [
-        ('include', '"', 'file47-yes'),
-        ('include', '<', 'file48-no'),
-        ('include', '<', 'file49-no'),
-        ('include', '<', 'file50-yes'),
-        ('include', '"', 'file51-no'),
-        ('include', '<', 'file52-no'),
-        ('include', '"', 'file53-yes'),
-    ]
-
-    if_no_space_expect = [
-        ('include', '"', 'file54-no'),
-        ('include', '<', 'file55-yes'),
-        ('include', '<', 'file56-no'),
-        ('include', '"', 'file57-no'),
-        ('include', '<', 'file58-yes'),
-        ('include', '"', 'file59-yes'),
-        ('include', '<', 'file60-no'),
-        ('include', '"', 'file61-no'),
-        ('include', '<', 'file62-yes'),
-    ]
+def test_dumbpre(preproccases,dumbpre):
+    for c in preproccases:
+        print("testing with dumbpre:",c)
+        expect = preproccases[c][2]
+        result = dumbpre.process_contents(preproccases[c][0])
+        assert result == expect, (c,result,expect)
 
 import os
 import re
@@ -827,6 +718,7 @@ class TestFileCase(unittest.TestCase):
             f.write(self.strip_initial_spaces(contents))
 
     def test_basic(self):
+        print("test_basic")
         """Test basic file inclusion"""
         self.write('f1.h', """\
         #include "f2.h"
@@ -842,6 +734,7 @@ class TestFileCase(unittest.TestCase):
         assert result == ['f2.h', 'f3.h'], result
 
     def test_current_file(self):
+        print("test_current_file")
         """Test use of the .current_file attribute"""
         self.write('f1.h', """\
         #include <f2.h>
@@ -867,24 +760,9 @@ class TestFileCase(unittest.TestCase):
         assert result == ['f2.h', 'f3.h'], result
         assert p.files == ['f1.h', 'f2.h', 'f3.h', 'f2.h', 'f1.h'], p.files
 
-
-
-if 1 and __name__ == '__main__':
-    suite = unittest.TestSuite()
-    tclasses = [ TestPreProcessor,
-                 TestDumbPreProcessor,
-                 TestFileCase,
-               ]
-    for tclass in tclasses:
-        names = unittest.getTestCaseNames(tclass, 'test_')
-        try:
-            names = sorted(set(names))
-        except NameError:
-            pass
-        suite.addTests(list(map(tclass, names)))
-    TestUnit.run(suite)
-
-
+if __name__ == '__main__':
+    raise RuntimeError("run this test via 'pytest', not python")
+    
 # Local Variables:
 # tab-width:4
 # indent-tabs-mode:nil
