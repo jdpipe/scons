@@ -79,9 +79,10 @@ def platform_default():
             return 'posix'
     elif os.name == 'os2':
         return 'os2'
+    elif sys.platform == 'win32' and os.environ.get('MSYSTEM'):
+        return 'mingw' 
     else:
         return sys.platform
-
 
 def platform_module(name=platform_default()):
     """Return the imported module for the platform.
