@@ -45,6 +45,7 @@ import SCons.compat
 import importlib
 import os
 import sys
+import sysconfig
 import tempfile
 
 import SCons.Errors
@@ -79,8 +80,8 @@ def platform_default():
             return 'posix'
     elif os.name == 'os2':
         return 'os2'
-    elif sys.platform == 'win32' and os.environ.get('MSYSTEM'):
-        return 'mingw' 
+    elif 'mingw' in sysconfig.get_platform() and os.environ.get('MSYSTEM'):
+        return 'msys2'
     else:
         return sys.platform
 
